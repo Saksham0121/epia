@@ -4,8 +4,8 @@ A small, production-minded backend for tracking patient follow-ups, plus an **AI
 
 > All data is fictional. Do not store real patient information in a demo deployment.
 
-- **Stack:** Node.js 18+, Express, SQLite (`better-sqlite3`), Zod validation, Helmet, rate limiting
-- **AI:** Anthropic Messages API, with an automatic, clearly-labelled **mock fallback** when no key is configured
+- **Stack:** Node.js 20.12+, Express, SQLite (`better-sqlite3`), Zod validation, Helmet, rate limiting
+- **AI:** Google Gemini API, with an automatic, clearly-labelled **mock fallback** when no key is configured
 - **UI:** a tiny dashboard served at `/` that exercises every endpoint and shows live request/response logs
 
 ## Quick start
@@ -76,7 +76,7 @@ If `API_KEY` is set, add `-H 'x-api-key: <key>'` to every `/api` call.
 
 **Privacy & safety by design:** the prompt contains only the patient's *first name*, dates and short notes. The phone number and surname are never sent to the model (covered by a test). Patient notes are fenced as untrusted data in the prompt, and the model is told not to give medical advice.
 
-**Mock fallback / limitation:** without `ANTHROPIC_API_KEY` (or if the API errors or times out), drafts come from a deterministic template and are labelled `MOCK` in the API (`source: "mock"`) and UI. The workflow, review gate and approval behave identically; only the wording is less natural.
+**Mock fallback / limitation:** without `GEMINI_API_KEY` (or if the API errors or times out), drafts come from a deterministic template and are labelled `MOCK` in the API (`source: "mock"`) and UI. The workflow, review gate and approval behave identically; only the wording is less natural.
 
 ## Security
 
@@ -102,8 +102,8 @@ If `API_KEY` is set, add `-H 'x-api-key: <key>'` to every `/api` call.
 | `CLINIC_NAME` | `Sunrise Family Clinic` | Used in drafts |
 | `CLINIC_TIMEZONE` | `Asia/Kolkata` | Defines what "today" means |
 | `API_KEY` | _(unset)_ | Set to require `x-api-key` on `/api` |
-| `ANTHROPIC_API_KEY` | _(unset)_ | Unset = mock drafts |
-| `AI_MODEL` | `claude-haiku-5-5` | |
+| `GEMINI_API_KEY` | _(unset)_ | Unset = mock drafts |
+| `AI_MODEL` | `gemini-2.5-flash` | |
 | `RATE_LIMIT_PER_MIN` | `120` | Per IP |
 | `CORS_ORIGIN` | _(same-origin)_ | Comma-separated allowed origins |
 

@@ -31,24 +31,23 @@ function buildPrompt(patient, clinicName) {
   ].join('\n');
 }
 
-async function callAnthropic(prompt) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': config.anthropicApiKey,
-      'anthropic-version': '2023-06-01',
+async function callGemini(prompt) {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(config.aiModel)}:generateContent`,
+    {
+      method: 'POST',
+      // Key goes in a header, never in the URL, so it can't leak into logs.
+      headers: { 'content-type': 'application/json', 'x-goog-api-key': config.geminiApiKey },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { maxOutputTokens: 300, temperature: 0.7, thinkingConfig: { thinkingBudget: 0 } },
+      }),
+      signal: AbortSignal.timeout(config.aiTimeoutMs),
     },
-    body: JSON.stringify({
-      model: config.aiModel,
-      max_tokens: 300,
-      messages: [{ role: 'user', content: prompt }],
-    }),
-    signal: AbortSignal.timeout(config.aiTimeoutMs),
-  });
+  );
   if (!res.ok) throw new Error(`AI API responded ${res.status}`);
   const data = await res.json();
-  const text = data?.content?.find((b) => b.type === 'text')?.text?.trim();
+  const text = data?.candidates?.[0]?.content?.parts?.map((p) => p.text || '').join('').trim();
   if (!text) throw new Error('AI API returned no text');
   return text.slice(0, 1000);
 }
@@ -58,9 +57,9 @@ async function callAnthropic(prompt) {
  * Never throws: any AI failure degrades to the mock so the workflow keeps working.
  */
 async function generateFollowUpDraft(patient, { clinicName = config.clinicName } = {}) {
-  if (config.anthropicApiKey) {
+  if (config.geminiApiKey) {
     try {
-      const message = await callAnthropic(buildPrompt(patient, clinicName));
+      const message = await callGemini(buildPrompt(patient, clinicName));
       return { message, source: 'ai', model: config.aiModel };
     } catch (err) {
       console.warn(`[ai] falling back to mock draft: ${err.message}`);

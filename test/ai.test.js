@@ -1,5 +1,7 @@
 'use strict';
 
+process.env.NODE_ENV = 'test'; // keep the real .env (and API key) out of unit tests
+
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { generateFollowUpDraft, buildPrompt } = require('../src/services/ai');

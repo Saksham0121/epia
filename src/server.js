@@ -7,7 +7,7 @@ const app = createApp();
 const server = app.listen(config.port, () => {
   console.log(`Patient follow-up API listening on :${config.port} (${config.env})`);
   if (!config.apiKey) console.warn('[security] API_KEY is not set: the API is open. Set it in production.');
-  if (!config.anthropicApiKey) console.warn('[ai] ANTHROPIC_API_KEY not set: drafts use the mock generator.');
+  if (!config.geminiApiKey) console.warn('[ai] GEMINI_API_KEY not set: drafts use the mock generator.');
 });
 
 // Graceful shutdown so in-flight requests finish and the DB closes cleanly.
