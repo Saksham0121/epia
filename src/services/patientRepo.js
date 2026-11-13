@@ -25,16 +25,18 @@ function createPatientRepo(db) {
 
   return {
     create(p) {
-      const info = insert.run({ ...p, notes: p.notes ?? null });
+      const info = insert.run({ name: p.name, phone: p.phone, consultationDate: p.consultationDate,
+        nextFollowUpDate: p.nextFollowUpDate, notes: p.notes ?? null });
       return toPatient(byId.get(info.lastInsertRowid));
     },
     get: (id) => toPatient(byId.get(id)),
     list({ status, page, limit }) {
       const where = status ? 'WHERE follow_up_status = @status' : '';
-      const total = db.prepare(`SELECT COUNT(*) c FROM patients ${where}`).get({ status }).c;
+      const filter = status ? { status } : {}; // node:sqlite rejects unused named params
+      const total = db.prepare(`SELECT COUNT(*) c FROM patients ${where}`).get(filter).c;
       const rows = db
         .prepare(`SELECT * FROM patients ${where} ORDER BY next_follow_up_date, id LIMIT @limit OFFSET @offset`)
-        .all({ status, limit, offset: (page - 1) * limit });
+        .all({ ...filter, limit, offset: (page - 1) * limit });
       return { total, rows: rows.map(toPatient) };
     },
     /** Pending follow-ups for exactly `date`, or on/before it when includeOverdue is set. */

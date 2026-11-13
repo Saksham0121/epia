@@ -4,7 +4,7 @@ A small, production-minded backend for tracking patient follow-ups, plus an **AI
 
 > All data is fictional. Do not store real patient information in a demo deployment.
 
-- **Stack:** Node.js 20.12+, Express, SQLite (`better-sqlite3`), Zod validation, Helmet, rate limiting
+- **Stack:** Node.js 22.13+, Express, SQLite (Node's built-in `node:sqlite`, zero native dependencies), Zod validation, Helmet, rate limiting
 - **AI:** Google Gemini API, with an automatic, clearly-labelled **mock fallback** when no key is configured
 - **UI:** a tiny dashboard served at `/` that exercises every endpoint and shows live request/response logs
 
