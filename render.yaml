@@ -1,0 +1,12 @@
+# One-click deploy on Render (Blueprint). Free tier disk is ephemeral: data resets on redeploy,
+# which is fine for a demo; attach a persistent disk or move to Postgres for real use.
+services:
+  - type: web
+    name: patient-followup
+    runtime: docker
+    healthCheckPath: /health
+    envVars:
+      - key: API_KEY
+        generateValue: true
+      - key: ANTHROPIC_API_KEY
+        sync: false
