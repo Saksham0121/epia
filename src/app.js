@@ -42,6 +42,9 @@ function createApp({ db = openDb(config.dbPath), generateDraft } = {}) {
   );
   app.get('/api', (_req, res) => res.json({ name: 'Patient Follow-up API', endpoints: ENDPOINTS }));
   app.use('/api/patients', patientRoutes({ patients }));
+  // Generation triggers paid AI calls, so it gets a much tighter limit.
+  app.use('/api/followups/generate', rateLimit({ windowMs: 60_000, limit: 10, standardHeaders: true, legacyHeaders: false,
+    message: { error: { message: 'Too many generate requests, wait a minute' } } }));
   app.use('/api/followups', followUpRoutes({ patients, drafts, generateDraft }));
 
   app.use(express.static(path.join(__dirname, '..', 'public')));

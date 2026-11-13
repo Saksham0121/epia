@@ -30,6 +30,10 @@ function createPatientRepo(db) {
       return toPatient(byId.get(info.lastInsertRowid));
     },
     get: (id) => toPatient(byId.get(id)),
+    findDuplicate: (p) =>
+      !!db
+        .prepare(`SELECT 1 FROM patients WHERE phone = ? AND next_follow_up_date = ? AND name = ? COLLATE NOCASE`)
+        .get(p.phone, p.nextFollowUpDate, p.name),
     list({ status, page, limit }) {
       const where = status ? 'WHERE follow_up_status = @status' : '';
       const filter = status ? { status } : {}; // node:sqlite rejects unused named params

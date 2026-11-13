@@ -47,6 +47,9 @@ function openDb(dbPath) {
     );
     CREATE INDEX IF NOT EXISTS idx_drafts_status ON drafts (status);
     CREATE INDEX IF NOT EXISTS idx_drafts_patient ON drafts (patient_id, status);
+    -- Database-level guarantee: at most one open draft per patient, even under concurrent requests.
+    CREATE UNIQUE INDEX IF NOT EXISTS uq_one_open_draft
+      ON drafts (patient_id) WHERE status = 'pending_review';
   `);
   return db;
 }

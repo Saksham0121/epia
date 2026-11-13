@@ -41,10 +41,13 @@ Base path `/api`. JSON in, JSON out. Errors always look like `{"error":{"message
 
 | Field | Rules |
 |---|---|
-| `name` | 2-100 chars |
-| `phone` | International format, e.g. `+919000000001` (spaces/dashes accepted, stored as E.164) |
-| `consultationDate`, `nextFollowUpDate` | Real `YYYY-MM-DD` dates; follow-up must be on/after consultation |
-| `notes` | Optional, max 500 chars; used to personalise the draft |
+| `name` | 2-100 chars; letters, spaces, `.` `'` `-` only (unicode names OK); whitespace collapsed |
+| `phone` | International format with country code, 8-15 digits, e.g. `+919000000001`. Spaces, dashes and brackets are accepted and stripped; stored as E.164 |
+| `consultationDate` | Real `YYYY-MM-DD` date; **not in the future**, not older than ~10 years (clinic timezone) |
+| `nextFollowUpDate` | Real date; **today or later**, on/after the consultation date, at most ~2 years ahead |
+| `notes` | Optional, max 500 chars; control characters stripped; used to personalise the draft |
+
+A patient with the same name (case-insensitive), phone and follow-up date as an existing one is rejected with `409`.
 
 Unknown fields are rejected. Status codes: `201` created, `400` validation, `401` bad API key, `404` not found, `409` draft already reviewed, `429` rate limited.
 
@@ -80,6 +83,9 @@ If `API_KEY` is set, add `-H 'x-api-key: <key>'` to every `/api` call.
 
 ## Security
 
+- Draft approval is blocked (`409`) once the patient's follow-up is completed, and the database enforces one open draft per patient even under concurrent requests
+- `/api/followups/generate` has its own tight rate limit (10/min) and processes at most 25 patients per call, since each is a paid AI call
+- Patient text is stripped of `<` `>` before entering the AI prompt so it can't break out of the data fence (prompt-injection hardening)
 - Input validated with Zod (types, formats, lengths, strict objects); all SQL is parameterised
 - `helmet` headers incl. a strict CSP (the UI uses no inline scripts, renders via `textContent`)
 - Optional API-key auth with constant-time comparison; per-IP rate limiting; 10 KB body limit

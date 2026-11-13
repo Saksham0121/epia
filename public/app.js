@@ -23,6 +23,11 @@ async function api(method, path, body) {
   return json;
 }
 
+// Guard rails in the form mirror the server rules (the server remains the source of truth).
+const today = new Date().toLocaleDateString('en-CA');
+$('[name=consultationDate]').max = today;
+$('[name=nextFollowUpDate]').min = today;
+
 let view = { path: '/api/patients?limit=100', label: 'All patients' };
 
 async function loadPatients() {

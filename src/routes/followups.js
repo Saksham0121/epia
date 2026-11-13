@@ -12,6 +12,8 @@ const ai = require('../services/ai');
  * Nothing in this API sends a WhatsApp message. "Approve" only marks the draft ready and
  * returns a click-to-chat link that a staff member opens and sends manually.
  */
+const MAX_PER_GENERATE = 25;
+
 module.exports = function followUpRoutes({ patients, drafts, generateDraft = ai.generateFollowUpDraft }) {
   const r = express.Router();
 
@@ -24,22 +26,28 @@ module.exports = function followUpRoutes({ patients, drafts, generateDraft = ai.
 
     const created = [];
     let skipped = 0;
-    for (const p of targets) {
-      if (drafts.hasOpenDraft(p.id)) { skipped += 1; continue; } // don't duplicate drafts
+    // Cap work per request: each draft is a paid AI call. Call again for the remainder.
+    const batch = targets.filter((p) => !drafts.hasOpenDraft(p.id));
+    skipped = targets.length - batch.length;
+    for (const p of batch.slice(0, MAX_PER_GENERATE)) {
       const out = await generateDraft(p);
-      created.push(drafts.create({ patientId: p.id, ...out }));
+      try {
+        created.push(drafts.create({ patientId: p.id, ...out }));
+      } catch (err) {
+        // A concurrent request created the open draft first (unique index): skip, don't fail.
+        if (!/UNIQUE/i.test(err.message)) throw err;
+        skipped += 1;
+      }
     }
+    const remaining = Math.max(0, batch.length - MAX_PER_GENERATE);
     res.status(created.length ? 201 : 200).json({
       data: created,
-      meta: { date: day, dueCount: targets.length, created: created.length, skippedExisting: skipped },
+      meta: { date: day, dueCount: targets.length, created: created.length, skippedExisting: skipped, remaining },
     });
   }));
 
   r.get('/drafts', (req, res) => {
-    const { status } = parse(
-      require('zod').z.object({ status: require('zod').z.enum(['pending_review', 'approved', 'rejected']).optional() }),
-      req.query,
-    );
+    const { status } = parse(v.draftListQuery, req.query);
     res.json({ data: drafts.list({ status }) });
   });
 
@@ -60,7 +68,10 @@ module.exports = function followUpRoutes({ patients, drafts, generateDraft = ai.
   const review = (status) => (req, res) => {
     const id = parse(v.idParam, req.params.id);
     const { reviewer } = parse(v.reviewDraft, req.body);
-    load(id);
+    const existing = load(id);
+    if (status === 'approved' && patients.get(existing.patientId)?.followUpStatus === 'completed') {
+      throw new HttpError(409, 'Follow-up is already completed; reject this draft instead');
+    }
     const { changed, draft } = drafts.review(id, status, reviewer);
     if (!changed) throw new HttpError(409, `Draft has already been ${draft.status}`);
     const body = { data: draft };

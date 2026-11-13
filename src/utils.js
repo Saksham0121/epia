@@ -12,6 +12,13 @@ function todayISO(now = new Date()) {
   }).format(now);
 }
 
+/** Shift a YYYY-MM-DD date by N days (UTC maths, so DST can't skew it). */
+function addDays(iso, days) {
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
 class HttpError extends Error {
   constructor(status, message, details) {
     super(message);
@@ -22,4 +29,4 @@ class HttpError extends Error {
 
 const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
-module.exports = { todayISO, HttpError, asyncHandler };
+module.exports = { todayISO, addDays, HttpError, asyncHandler };
