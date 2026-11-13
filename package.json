@@ -1,0 +1,25 @@
+{
+  "name": "patient-followup-system",
+  "version": "1.0.0",
+  "description": "Patient follow-up REST API with an AI-drafted, human-approved WhatsApp reminder workflow",
+  "main": "src/server.js",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "seed": "node scripts/seed.js",
+    "test": "node --test test/"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.1.1",
+    "cors": "^2.8.6",
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.4",
+    "helmet": "^8.3.0",
+    "zod": "^4.6.7"
+  }
+}
