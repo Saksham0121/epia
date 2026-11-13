@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Patient Follow-up Console</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div>
+    <h1>Patient Follow-up Console</h1>
+    <p class="sub">Demo UI for the REST API &middot; fictional data only &middot; nothing is ever sent to WhatsApp automatically</p>
+  </div>
+  <label class="key">API key <input id="apiKey" type="password" placeholder="only if the server requires one" autocomplete="off"></label>
+</header>
+
+<main>
+  <section class="card">
+    <h2>1. Add patient <code>POST /api/patients</code></h2>
+    <form id="addForm">
+      <input name="name" placeholder="Full name" required>
+      <input name="phone" placeholder="+919000000099" required>
+      <label>Consultation <input name="consultationDate" type="date" required></label>
+      <label>Next follow-up <input name="nextFollowUpDate" type="date" required></label>
+      <input name="notes" placeholder="Notes (optional, used to personalise the message)" maxlength="500">
+      <button>Add patient</button>
+    </form>
+    <p id="formMsg" class="msg" role="status"></p>
+  </section>
+
+  <section class="card">
+    <div class="row">
+      <h2>2. Patients <code>GET /api/patients</code></h2>
+      <div class="actions">
+        <button id="btnAll" class="ghost">All patients</button>
+        <button id="btnDue" class="ghost">Due today <code>/due-today</code></button>
+        <button id="btnOverdue" class="ghost">Due + overdue</button>
+      </div>
+    </div>
+    <div class="scroll"><table id="patients"><thead><tr>
+      <th>ID</th><th>Name</th><th>Phone</th><th>Consulted</th><th>Follow-up</th><th>Status</th><th></th>
+    </tr></thead><tbody></tbody></table></div>
+    <p id="listMeta" class="msg"></p>
+  </section>
+
+  <section class="card">
+    <div class="row">
+      <h2>3. AI WhatsApp drafts <code>/api/followups/*</code></h2>
+      <button id="btnGen">Generate drafts for due patients</button>
+    </div>
+    <p class="hint">Staff reviews each draft, may edit it, then approves or rejects. Approve only marks it ready and gives a click-to-chat link for a human to send.</p>
+    <div id="drafts"></div>
+  </section>
+
+  <section class="card">
+    <div class="row"><h2>API activity</h2><button id="btnClear" class="ghost">Clear</button></div>
+    <div id="log" class="log"></div>
+  </section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
